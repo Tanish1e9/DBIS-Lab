@@ -81,10 +81,10 @@ const Products = () => {
       setquantities((prevQuantities) => {
         const newQuantity =  (prevQuantities[productId] || 0) + change;
         if(newQuantity > stock){
-          seterrormessages((errormessages) => ({...errormessages,[productId]:"Not enough stock"}));
+          seterrormessages({...errormessages,[productId]:"Not enough stock"});
         }
         else{
-          seterrormessages((errormessages) => ({...errormessages,[productId]:null}));
+          seterrormessages({...errormessages,[productId]:null});
         }
         return {...prevQuantities, [productId]: newQuantity}
     });
@@ -97,10 +97,10 @@ const Products = () => {
   const addToCart = async (productId) => {
     try{
       if(quantities[productId]===0){
-        setCartMessages((prevMessages) => ({
-          ...prevMessages,
+        setCartMessages({
+          ...cartmessages,
           [productId]: "Enter a non-zero quantity!",
-        }));
+        });
       }
       else{
         const response = await fetch(`${apiUrl}/add-to-cart`,{
@@ -116,24 +116,24 @@ const Products = () => {
         });
         const data = await response.json();
         if(response.ok){
-              setCartMessages((prevMessages) => ({
-                ...prevMessages,
+              setCartMessages({
+                ...cartmessages,
                 [productId]: (quantities[productId] || 0) > 0 ? "Added successfully!" : "Removed successfully!",
-              }));
+              });
         }
         else{
               console.log(data.message);
-              setCartMessages((prevMessages) => ({
-                ...prevMessages,
+              setCartMessages({
+                ...cartmessages,
                 [productId]: "Failed to add!",
-              }));
+              });
         }
       }
       setTimeout(() => {
-        setCartMessages((prevMessages) => ({
-          ...prevMessages,
+        setCartMessages({
+          ...cartmessages,
           [productId]: null,
-        }));
+        });
       }, 3000);
 
       setquantities((prevQuantities)=>({
@@ -182,7 +182,6 @@ const Products = () => {
               <th>Stock Available</th>
               <th>Quantity</th>
               <th>Action</th>
-              <th>Message</th>
             </tr>
           </thead>
           <tbody>
@@ -192,10 +191,14 @@ const Products = () => {
                 <button onClick={() => handleQuantityChange(product.product_id,1,product.stock_quantity)}>+</button>
                 {quantities[product.product_id] || 0}
                 <button onClick={() => handleQuantityChange(product.product_id,-1,product.stock_quantity)}>-</button>
+                {errormessages[product.product_id] && <p>{errormessages[product.product_id]}</p>}
               </td>
-              <td><button onClick={() => addToCart(product.product_id)}>Add to cart</button></td>
-              <td>{errormessages[product.product_id] || "Available"}{cartmessages[product.product_id]}</td></tr>
-            ))) : <tr><td colSpan={7}>No products found</td></tr>}
+              <td>
+                <button onClick={() => addToCart(product.product_id)}>Add to cart</button>
+                {cartmessages[product.product_id] && <p>{cartmessages[product.product_id]}</p>}
+              </td>
+              </tr>
+            ))) : <tr><td colSpan={6}>No products found</td></tr>}
           </tbody>
         </table>
       </div>

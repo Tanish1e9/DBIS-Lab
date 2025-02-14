@@ -47,6 +47,15 @@ const Cart = () => {
 	// message: Stores success or info messages
 	const [message, setMessage] = useState(null);
 
+	const [errors,seterrors] = useState({});
+	const [formData, setFormData] = useState({
+		pincode: "",
+		state: "",
+		city: "",
+		street: "",
+	  });
+	const [formerror, setformerror] = useState(null);
+
 	// TODO: Implement the fetchCart function
 	// This function should fetch the user's cart data and update the state variables
 	const fetchCart = async () => {
@@ -64,6 +73,7 @@ const Cart = () => {
 			if(response.ok){
 				setTotalPrice(data.totalPrice);
 				setCart(data.cart);
+				setError(null);
 			}else{
 				setError(data.message);
 			}
@@ -80,6 +90,38 @@ const Cart = () => {
 	const updateQuantity = async (productId, change, currentQuantity, stockQuantity) => {
 		// Implement your logic for quantity update
 		// Validate quantity bounds and update the cart via API
+		if(currentQuantity + change > stockQuantity){
+			seterrors((preverrors)=>({...preverrors,[productId]:"Exceeds stock quantity"}));
+		}
+		else{
+			seterrors((preverrors)=>({...preverrors,[productId]:null}));
+			try{
+				const response = await fetch(`${apiUrl}/update-cart`,{
+					method : "POST" ,
+					credentials : "include",
+					headers : {
+						"Content-Type" : "application/json"
+					},
+					body: JSON.stringify({
+						product_id : productId,
+						quantity : change 
+					})
+				});
+				const data = await response.json();
+				if(!response.ok){
+					setError(error);
+				}
+				else{
+					setError(null);
+					fetchCart();
+				}
+				
+			}catch(error){
+				console.log(error);
+				return navigate("/notfound");
+			}
+
+		}
 	};
 
 	// TODO: Implement the removeFromCart function
@@ -87,6 +129,30 @@ const Cart = () => {
 	const removeFromCart = async (productId) => {
 		// Implement your logic to remove an item from the cart
 		// Use the appropriate API call to handle this
+		try{
+			const response = await fetch(`${apiUrl}/remove-from-cart`,{
+				method : "POST",
+				credentials : "include",
+				headers: {
+					"Content-Type" : "application/json"
+				},
+				body: JSON.stringify({
+					product_id : productId
+				})
+			});
+			const data = await response.json();
+			if(!response.ok){
+				console.log(data.message);
+				setError(data.message);
+			}
+			else{
+				setError(null);
+				fetchCart();
+			}
+		}catch(error){
+			console.log(error);
+			return navigate("/notfound");
+		}
 	};
 
 	// TODO: Implement the handleCheckout function
@@ -102,6 +168,29 @@ const Cart = () => {
 	const handlePinCodeChange = async (e) => {
 		// Implement the logic to fetch city and state by pincode
 		// Update the city and state fields accordingly
+		setFormData({...formData,pincode: e.target.value});
+		try{
+			const response = await fetch(`${apiUrl}/fetch-pincode?pincode=${e.target.value}`,{
+				method: "GET",
+				credentials: "include",
+				headers : {
+					"Content-Type" : "application/json"
+				}
+			});
+			
+			const data = await response.json();
+
+			if(response.ok){
+				setFormData({...formData,state: data.state, city: data.name});
+				setformerror(null);
+			}
+			else{
+				setformerror("Invalid PINCODE");
+			}
+		}catch(error){
+			console.log(error);
+			return navigate("/notfound");
+		}
 	};
 
 	// TODO: Display error messages if any error occurs
@@ -146,6 +235,14 @@ const Cart = () => {
 									<tr key={item.item_id}>
 										{/* TODO: Render product details here */}
 										{/* Display item name, price, stock, quantity, and total */}
+										<td>{item.name}</td><td>{item.price}</td><td>{item.stock_quantity}</td>
+										<td>
+											<button onClick={()=>updateQuantity(item.item_id,1,item.quantity,item.stock_quantity)}>+</button>
+											{item.quantity}
+											<button onClick={()=>updateQuantity(item.item_id,-1,item.quantity,item.stock_quantity)}>-</button>
+											{errors[item.item_id] && <p>{errors[item.item_id]}</p>}
+										</td>
+										<td>{item.total_price}</td><td><button onClick={()=>(removeFromCart(item.item_id))}>Remove</button></td>
 									</tr>
 								))}
 							</tbody>
@@ -155,7 +252,11 @@ const Cart = () => {
 						{/* Allow users to input pincode, street, city, and state */}
 						<form>
 							{/* Implement address fields */}
-
+							<label>Pincode:</label><input type="text" name="pincode" onBlur={handlePinCodeChange} placeholder="Enter pincode"/><br/>
+							{formerror && <p>{formerror}</p>}
+							<label>Street:</label><input type="text" name="street" onChange={(e)=>setFormData({...formData,[e.target.name]:e.target.value})} placeholder="Enter street"/><br/>
+							<label>City:</label><input type="text" name="city" value={formData.city} placeholder="Enter city" readOnly/><br/>
+							<label>State:</label><input type="text" name="state" value={formData.state} placeholder="Enter state" readOnly/><br/>
 						</form>
 
 						{/* TODO: Display total price and the checkout button */}

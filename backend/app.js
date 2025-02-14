@@ -246,8 +246,9 @@ app.post("/update-cart", isAuthenticated, async (req, res) => {
     else if(parseInt(req.body['quantity'],10) + parseInt(qty,10) > parseInt(result.rows[0]['stock_quantity'],10)){
       res.status(400).json({message: `Requested quantity exceeds available stock`});
     }
-    else if(parseInt(req.body['quantity'],10) + parseInt(qty,10) < 0){
+    else if(parseInt(req.body['quantity'],10) + parseInt(qty,10) <= 0){
       pool.query("delete from cart where item_id = $1 and user_id = $2",[req.body['product_id'],req.session.userId]);
+      res.status(200).json({message: "Cart updated successfully"});
     }
     else if(result2.rowCount == 0){
       pool.query("insert into cart values ($1,$2,$3)",[req.session.userId,req.body['product_id'],req.body['quantity']]);
@@ -320,8 +321,31 @@ app.get("/order-confirmation", isAuthenticated, async (req, res) => {
   }
 });
 
+app.get("/fetch-pincode", isAuthenticated, async (req, res) => {
+  try{
+    const response = await fetch(`https://api.postalpincode.in/pincode/${req.query.pincode}`,{
+      method: "GET",
+      headers: {
+        "Content-Type" : "application/json"
+      }
+    });
+
+    const data = await response.json();
+    if(!response.ok){
+      res.status(400).json({message: "Invalid PINCODE"});
+    }
+    else{
+      res.status(200).json({state: data[0].PostOffice[0].State, name: data[0].PostOffice[0].Name});
+    }
+  }catch(error){
+    console.log(error);
+    res.status(500).json({message:"Failed to fetch pincode"});
+  }
+});
+
 ////////////////////////////////////////////////////
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
