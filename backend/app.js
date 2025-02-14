@@ -271,7 +271,7 @@ app.post("/place-order", isAuthenticated, async (req, res) => {
   try{
     const result = await pool.query("SELECT item_id,name, quantity, stock_quantity FROM cart JOIN products ON item_id = product_id WHERE user_id = $1 and quantity > stock_quantity",[req.session.userId]);
     const result2 = await pool.query("SELECT sum(quantity*price) as total_amount from cart join products on item_id = product_id WHERE user_id = $1",[req.session.userId]);
-    const result3 = await pool.query("select coalesce(max(order_id)+1,1) as order_id from orders");
+    
     const result4 = await pool.query("select * from cart join products on item_id = product_id where user_id = $1",[req.session.userId]);
     
     if (result.rowCount>0) {
@@ -282,8 +282,10 @@ app.post("/place-order", isAuthenticated, async (req, res) => {
     }
     else{
       pool.query("INSERT INTO orders(user_id,order_date,total_amount) VALUES ($1,NOW(),$2)", [req.session.userId,result2.rows[0]['total_amount']]);
+      const result3 = await pool.query("select coalesce(max(order_id),0) as order_id from orders where user_id = $1",[req.session.userId]);
       
       for(const row of result4.rows){
+        console.log(result3.rows[0]['order_id']);
         pool.query("insert into orderitems values($1,$2,$3,$4)",[result3.rows[0]['order_id'],row['item_id'],row['quantity'],row['price']]);
       }
           
@@ -306,7 +308,7 @@ app.get("/order-confirmation", isAuthenticated, async (req, res) => {
     }
   
     const result3 = await pool.query("select * from orders where order_id = $1",[result.rows[0]['s']]);
-    const result2 = await pool.query("SELECT *,name FROM orderitems JOIN products ON item_id = product_id WHERE order_id = $1",[req.session.userId]);
+    const result2 = await pool.query("SELECT *,name FROM orderitems as a JOIN products as b ON a.product_id = b.product_id WHERE order_id = $1",[req.session.userId]);
     // order_id, product_id, quantity, price, product_name
     for (const row of result2.rows){
       pool.query("update products set stock_quantity = stock_quantity - $1 where product_id = $2",[row['quantity'],row['product_id']]);

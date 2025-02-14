@@ -161,6 +161,27 @@ const Cart = () => {
 	const handleCheckout = async () => {
 		// Implement your logic for checkout, validate address and place order
 		// Make sure to clear the cart after successful checkout
+		try{
+			const response = await fetch(`${apiUrl}/place-order`,{
+				method : "POST",
+				credentials : "include",
+				headers : {
+					"Content-Type" : "application/json"
+				}
+			});
+
+			const data = await response.json();
+
+			if(response.ok){
+				return navigate("/order-confirmation");
+			}	
+			else{
+				setError(data.message);
+			}
+		}catch(error){
+			console.log(error);
+			navigate("/notfound");
+		}
 	};
 
 	// TODO: Implement the handlePinCodeChange function
