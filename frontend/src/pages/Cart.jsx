@@ -74,6 +74,11 @@ const Cart = () => {
 				setTotalPrice(data.totalPrice);
 				setCart(data.cart);
 				setError(null);
+				for(const row of data.cart){
+					if(row.quantity > row.stock_quantity){
+						seterrors((preverrors)=>({...preverrors,[row.item_id]:"Exceeds stock quantity"}));
+					}
+				}
 			}else{
 				setError(data.message);
 			}
@@ -92,9 +97,18 @@ const Cart = () => {
 		// Validate quantity bounds and update the cart via API
 		if(currentQuantity + change > stockQuantity){
 			seterrors((preverrors)=>({...preverrors,[productId]:"Exceeds stock quantity"}));
+			setTimeout(() => {
+				seterrors({
+				  ...errors,
+				  [productId]: null,
+				});
+			  }, 3000);
 		}
 		else{
 			seterrors((preverrors)=>({...preverrors,[productId]:null}));
+		}
+
+		if(currentQuantity + change <= stockQuantity || change===-1){
 			try{
 				const response = await fetch(`${apiUrl}/update-cart`,{
 					method : "POST" ,
@@ -273,9 +287,9 @@ const Cart = () => {
 						{/* Allow users to input pincode, street, city, and state */}
 						<form>
 							{/* Implement address fields */}
-							<label>Pincode:</label><input type="text" name="pincode" onBlur={handlePinCodeChange} placeholder="Enter pincode"/><br/>
+							<label>Pincode:</label><input type="text" name="pincode" onBlur={handlePinCodeChange} placeholder="Enter pincode" required/><br/>
 							{formerror && <p>{formerror}</p>}
-							<label>Street:</label><input type="text" name="street" onChange={(e)=>setFormData({...formData,[e.target.name]:e.target.value})} placeholder="Enter street"/><br/>
+							<label>Street:</label><input type="text" name="street" onChange={(e)=>setFormData({...formData,[e.target.name]:e.target.value})} placeholder="Enter street"required/><br/>
 							<label>City:</label><input type="text" name="city" value={formData.city} placeholder="Enter city" readOnly/><br/>
 							<label>State:</label><input type="text" name="state" value={formData.state} placeholder="Enter state" readOnly/><br/>
 						</form>

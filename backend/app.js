@@ -171,7 +171,7 @@ app.post("/add-to-cart", isAuthenticated, async (req, res) => {
     if(result.rowCount == 0){
       res.status(400).json({message: "Invalid product ID"});
     }
-    else if(parseInt(req.body['quantity'],10) + parseInt(qty,10) > parseInt(result.rows[0]['stock_quantity'],10)){
+    else if(parseInt(req.body['quantity'],10) + parseInt(qty,10) > parseInt(result.rows[0]['stock_quantity'],10) && parseInt(req.body.quantity,10)>0){
       res.status(400).json({message: `Insufficient stock for ${result.rows[0]["name"]}.`});
     }
     else if(parseInt(req.body['quantity'],10) + parseInt(qty,10) <= 0){
@@ -243,7 +243,7 @@ app.post("/update-cart", isAuthenticated, async (req, res) => {
     if(result.rowCount == 0){
       res.status(400).json({message: "Invalid product ID"});
     }
-    else if(parseInt(req.body['quantity'],10) + parseInt(qty,10) > parseInt(result.rows[0]['stock_quantity'],10)){
+    else if(parseInt(req.body['quantity'],10) + parseInt(qty,10) > parseInt(result.rows[0]['stock_quantity'],10) && parseInt(req.body.quantity,10)>0){
       res.status(400).json({message: `Requested quantity exceeds available stock`});
     }
     else if(parseInt(req.body['quantity'],10) + parseInt(qty,10) <= 0){
