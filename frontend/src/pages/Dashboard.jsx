@@ -38,7 +38,7 @@ const Dashboard = (props) => {
       }   
     };
     checkStatus();
-  }, [navigate]);
+  }, []);
 
 
   return (

@@ -26,7 +26,7 @@ const Products = () => {
             return navigate('/login');
         }
         else{
-            fetchProducts();
+            await fetchProducts();
         }
       } catch (error) {
         console.error(error);
@@ -34,7 +34,7 @@ const Products = () => {
       }  
     };
     checkStatus();
-  }, [navigate]);
+  }, []);
 
   // Read about useState to understand how to manage component state
   const [products, setProducts] = useState([]);

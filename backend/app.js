@@ -281,13 +281,14 @@ app.post("/place-order", isAuthenticated, async (req, res) => {
       res.status(400).json({message: "Cart is empty"});
     }
     else{
-      pool.query("INSERT INTO orders(user_id,order_date,total_amount) VALUES ($1,NOW(),$2)", [req.session.userId,result2.rows[0]['total_amount']]);
+      await pool.query("INSERT INTO orders(user_id,order_date,total_amount) VALUES ($1,NOW(),$2)", [req.session.userId,result2.rows[0]['total_amount']]);
       const result3 = await pool.query("select coalesce(max(order_id),0) as order_id from orders where user_id = $1",[req.session.userId]);
       
       for(const row of result4.rows){
-        console.log(result3.rows[0]['order_id']);
-        pool.query("insert into orderitems values($1,$2,$3,$4)",[result3.rows[0]['order_id'],row['item_id'],row['quantity'],row['price']]);
+        await pool.query("insert into orderitems values($1,$2,$3,$4)",[result3.rows[0]['order_id'],row['item_id'],row['quantity'],row['price']]);
+        await pool.query("update products set stock_quantity = stock_quantity - $1 where product_id = $2",[row.quantity,row.product_id]);
       }
+      await pool.query("delete from cart where user_id = $1",[req.session.userId]);
           
       res.status(200).json({message: "Order placed successfully"});  
     }
@@ -308,12 +309,7 @@ app.get("/order-confirmation", isAuthenticated, async (req, res) => {
     }
   
     const result3 = await pool.query("select * from orders where order_id = $1",[result.rows[0]['s']]);
-    const result2 = await pool.query("SELECT *,name FROM orderitems as a JOIN products as b ON a.product_id = b.product_id WHERE order_id = $1",[req.session.userId]);
-    // order_id, product_id, quantity, price, product_name
-    for (const row of result2.rows){
-      pool.query("update products set stock_quantity = stock_quantity - $1 where product_id = $2",[row['quantity'],row['product_id']]);
-    }
-    pool.query("delete from cart where user_id = $1",[req.session.userId]);
+    const result2 = await pool.query("SELECT *,name FROM orderitems as a JOIN products as b ON a.product_id = b.product_id WHERE order_id = $1",[result.rows[0].s]);
 
     res.status(200).json({message: "Order fetch successfully", order: result3.rows[0], orderItems: result2.rows});
 

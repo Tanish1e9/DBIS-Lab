@@ -29,7 +29,7 @@ const OrderConfirmation = () => {
 					return navigate('/login');
 				}
 				else {
-					fetchOrderConfirmation();
+					await fetchOrderConfirmation();
 				}
 			} catch (error) {
 				console.error(error);
@@ -37,7 +37,7 @@ const OrderConfirmation = () => {
 			}
 		};
 		checkStatus();
-	}, [navigate]);
+	}, []);
 
 	// TODO: Use useState to manage the orderDetails and error state
 	const [error,setError] = useState(null);
@@ -68,8 +68,9 @@ const OrderConfirmation = () => {
 			const data = await response.json();
 
 			if(response.ok){
+				console.log(data.orderItems);
 				setorder(data.order);
-				setorderitems(data.orderitems);
+				setorderitems(data.orderItems);
 			}else{
 				setError(data.message);
 			}

@@ -98,6 +98,7 @@ const Login = () => {
         <label>Email: <input type="email" id="email" name="email" required onChange={handleChange}/> </label><br/>
         <label>Password <input type="password" id="password" name="password" required onChange={handleChange}/> </label><br/>
         <button type="submit">Login</button>
+        <button onClick={()=>navigate("/signup")}>Signup</button>
       </form>
     </div>
   );

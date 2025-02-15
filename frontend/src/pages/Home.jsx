@@ -28,18 +28,18 @@ const Home = () => {
         const data = await response.json();
 
         if (!response.ok) {
-          navigate('/login');
+          return navigate('/login');
         }
         else{
-          navigate('/dashboard');
+          return navigate('/dashboard');
         }
       } catch (error) {
         console.error(error);
-        navigate('/notfound');
+        return navigate('/notfound');
       }    
     };
     checkStatus();
-  }, [navigate]);
+  }, []);
   return <div>checking</div>;
 };
 

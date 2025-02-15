@@ -35,7 +35,7 @@ const Cart = () => {
 			}
 		};
 		checkStatus();
-	}, [navigate]);
+	}, []);
 
 	// TODO: Manage cart state with useState
 	// cart: Stores the items in the cart
@@ -109,7 +109,7 @@ const Cart = () => {
 				});
 				const data = await response.json();
 				if(!response.ok){
-					setError(error);
+					setError(data.message);
 				}
 				else{
 					setError(null);

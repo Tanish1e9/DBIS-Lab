@@ -32,7 +32,7 @@ const Signup = () => {
         
       };
       checkStatus();
-  }, [navigate]);
+  }, []);
 
   // Read about useState to understand how to manage component state
   const [formData, setFormData] = useState({
