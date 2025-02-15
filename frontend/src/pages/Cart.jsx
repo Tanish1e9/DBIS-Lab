@@ -47,13 +47,13 @@ const Cart = () => {
 	// message: Stores success or info messages
 	const [message, setMessage] = useState(null);
 
-	const [errors,seterrors] = useState({});
+	const [errors, seterrors] = useState({});
 	const [formData, setFormData] = useState({
 		pincode: "",
 		state: "",
 		city: "",
 		street: "",
-	  });
+	});
 	const [formerror, setformerror] = useState(null);
 
 	// TODO: Implement the fetchCart function
@@ -62,32 +62,32 @@ const Cart = () => {
 		// Implement your logic to fetch the cart data
 		// Use the API endpoint to get the user's cart
 		try {
-			const response = await fetch(`${apiUrl}/display-cart`,{
-				method : "GET",
-				credentials : "include",
+			const response = await fetch(`${apiUrl}/display-cart`, {
+				method: "GET",
+				credentials: "include",
 				headers: {
-					"Content-Type" : "application/json"
+					"Content-Type": "application/json"
 				}
 			});
 			const data = await response.json();
-			if(response.ok){
+			if (response.ok) {
 				setTotalPrice(data.totalPrice);
 				setCart(data.cart);
 				setError(null);
-				for(const row of data.cart){
-					if(row.quantity > row.stock_quantity){
-						seterrors((preverrors)=>({...preverrors,[row.item_id]:"Exceeds stock quantity"}));
+				for (const row of data.cart) {
+					if (row.quantity > row.stock_quantity) {
+						seterrors((preverrors) => ({ ...preverrors, [row.item_id]: "Exceeds stock quantity" }));
 					}
 				}
-			}else{
+			} else {
 				setError(data.message);
 			}
 			setMessage(data.message);
-		}catch(error){
+		} catch (error) {
 			console.log(error);
 			return navigate('/notfound');
 		}
-  };
+	};
 
 	// TODO: Implement the updateQuantity function
 	// This function should handle increasing or decreasing item quantities
@@ -95,42 +95,42 @@ const Cart = () => {
 	const updateQuantity = async (productId, change, currentQuantity, stockQuantity) => {
 		// Implement your logic for quantity update
 		// Validate quantity bounds and update the cart via API
-		if(currentQuantity + change > stockQuantity){
-			seterrors((preverrors)=>({...preverrors,[productId]:"Exceeds stock quantity"}));
+		if (currentQuantity + change > stockQuantity) {
+			seterrors((preverrors) => ({ ...preverrors, [productId]: "Exceeds stock quantity" }));
 			setTimeout(() => {
 				seterrors({
-				  ...errors,
-				  [productId]: null,
+					...errors,
+					[productId]: null,
 				});
-			  }, 3000);
+			}, 3000);
 		}
-		else{
-			seterrors((preverrors)=>({...preverrors,[productId]:null}));
+		else {
+			seterrors((preverrors) => ({ ...preverrors, [productId]: null }));
 		}
 
-		if(currentQuantity + change <= stockQuantity || change===-1){
-			try{
-				const response = await fetch(`${apiUrl}/update-cart`,{
-					method : "POST" ,
-					credentials : "include",
-					headers : {
-						"Content-Type" : "application/json"
+		if (currentQuantity + change <= stockQuantity || change === -1) {
+			try {
+				const response = await fetch(`${apiUrl}/update-cart`, {
+					method: "POST",
+					credentials: "include",
+					headers: {
+						"Content-Type": "application/json"
 					},
 					body: JSON.stringify({
-						product_id : productId,
-						quantity : change 
+						product_id: productId,
+						quantity: change
 					})
 				});
 				const data = await response.json();
-				if(!response.ok){
+				if (!response.ok) {
 					setError(data.message);
 				}
-				else{
+				else {
 					setError(null);
 					fetchCart();
 				}
-				
-			}catch(error){
+
+			} catch (error) {
 				console.log(error);
 				return navigate("/notfound");
 			}
@@ -143,27 +143,27 @@ const Cart = () => {
 	const removeFromCart = async (productId) => {
 		// Implement your logic to remove an item from the cart
 		// Use the appropriate API call to handle this
-		try{
-			const response = await fetch(`${apiUrl}/remove-from-cart`,{
-				method : "POST",
-				credentials : "include",
+		try {
+			const response = await fetch(`${apiUrl}/remove-from-cart`, {
+				method: "POST",
+				credentials: "include",
 				headers: {
-					"Content-Type" : "application/json"
+					"Content-Type": "application/json"
 				},
 				body: JSON.stringify({
-					product_id : productId
+					product_id: productId
 				})
 			});
 			const data = await response.json();
-			if(!response.ok){
+			if (!response.ok) {
 				console.log(data.message);
 				setError(data.message);
 			}
-			else{
+			else {
 				setError(null);
 				fetchCart();
 			}
-		}catch(error){
+		} catch (error) {
 			console.log(error);
 			return navigate("/notfound");
 		}
@@ -172,27 +172,40 @@ const Cart = () => {
 	// TODO: Implement the handleCheckout function
 	// This function should handle the checkout process and validate the address fields
 	// If the user is ready to checkout, place the order and navigate to order confirmation
-	const handleCheckout = async () => {
+	const handleCheckout = async (e) => {
 		// Implement your logic for checkout, validate address and place order
-		// Make sure to clear the cart after successful checkout
-		try{
-			const response = await fetch(`${apiUrl}/place-order`,{
-				method : "POST",
-				credentials : "include",
-				headers : {
-					"Content-Type" : "application/json"
-				}
+		// Make sure to clear the cart after successful checkoutconst formvals = new FormData(event.target);
+		e.preventDefault();
+		const isvalidated = await handlePinCodeChange();
+		if (!isvalidated || !formData.pincode || !formData.street || !formData.city || !formData.state) {
+			setMessage("Please fill in all address fields.");
+			return;
+		}
+
+		try {
+			const response = await fetch(`${apiUrl}/place-order`, {
+				method: "POST",
+				credentials: "include",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					city: formData.city,
+					state: formData.state,
+					pincode: formData.pincode,
+					street: formData.street
+				})
 			});
 
 			const data = await response.json();
 
-			if(response.ok){
+			if (response.ok) {
 				return navigate("/order-confirmation");
-			}	
-			else{
+			}
+			else {
 				setError(data.message);
 			}
-		}catch(error){
+		} catch (error) {
 			console.log(error);
 			navigate("/notfound");
 		}
@@ -200,29 +213,35 @@ const Cart = () => {
 
 	// TODO: Implement the handlePinCodeChange function
 	// This function should fetch the city and state based on pincode entered by the user
-	const handlePinCodeChange = async (e) => {
+
+	const handlePinCodeChange = async () => {
 		// Implement the logic to fetch city and state by pincode
 		// Update the city and state fields accordingly
-		setFormData({...formData,pincode: e.target.value});
-		try{
-			const response = await fetch(`${apiUrl}/fetch-pincode?pincode=${e.target.value}`,{
+		if(formData.pincode.length===0){
+			return false;
+		}
+		try {
+			const response = await fetch(`${apiUrl}/fetch-pincode?pincode=${formData.pincode}`, {
 				method: "GET",
 				credentials: "include",
-				headers : {
-					"Content-Type" : "application/json"
+				headers: {
+					"Content-Type": "application/json"
 				}
 			});
-			
+
 			const data = await response.json();
 
-			if(response.ok){
-				setFormData({...formData,state: data.state, city: data.name});
+			if (response.ok) {
+				setFormData((prevData) => ({ ...prevData, state: data.state, city: data.name }));
 				setformerror(null);
+				return true;
 			}
-			else{
+			else {
 				setformerror("Invalid PINCODE");
+				setFormData((prevData) => ({ ...prevData, state: null, city: null}));
+				return false;
 			}
-		}catch(error){
+		} catch (error) {
 			console.log(error);
 			return navigate("/notfound");
 		}
@@ -232,8 +251,8 @@ const Cart = () => {
 	if (error) {
 		return (
 			<>
-			<Navbar />
-			<div className="cart-error">{error}</div>
+				<Navbar />
+				<div className="cart-error">{error}</div>
 			</>
 		);
 	}
@@ -272,12 +291,12 @@ const Cart = () => {
 										{/* Display item name, price, stock, quantity, and total */}
 										<td>{item.name}</td><td>{item.price}</td><td>{item.stock_quantity}</td>
 										<td>
-											<button onClick={()=>updateQuantity(item.item_id,1,item.quantity,item.stock_quantity)}>+</button>
+											<button onClick={() => updateQuantity(item.item_id, 1, item.quantity, item.stock_quantity)}>+</button>
 											{item.quantity}
-											<button onClick={()=>updateQuantity(item.item_id,-1,item.quantity,item.stock_quantity)}>-</button>
+											<button onClick={() => updateQuantity(item.item_id, -1, item.quantity, item.stock_quantity)}>-</button>
 											{errors[item.item_id] && <p>{errors[item.item_id]}</p>}
 										</td>
-										<td>{item.total_price}</td><td><button onClick={()=>(removeFromCart(item.item_id))}>Remove</button></td>
+										<td>{item.total_price}</td><td><button onClick={() => (removeFromCart(item.item_id))}>Remove</button></td>
 									</tr>
 								))}
 							</tbody>
@@ -285,22 +304,22 @@ const Cart = () => {
 
 						{/* TODO: Implement the address form */}
 						{/* Allow users to input pincode, street, city, and state */}
-						<form>
+						<form onSubmit={handleCheckout}>
 							{/* Implement address fields */}
-							<label>Pincode:</label><input type="text" name="pincode" onBlur={handlePinCodeChange} placeholder="Enter pincode" required/><br/>
+							<label>Pincode:</label><input type="text" name="pincode" onChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.value })} onBlur={handlePinCodeChange} placeholder="Enter pincode" required/><br />
 							{formerror && <p>{formerror}</p>}
-							<label>Street:</label><input type="text" name="street" onChange={(e)=>setFormData({...formData,[e.target.name]:e.target.value})} placeholder="Enter street"required/><br/>
-							<label>City:</label><input type="text" name="city" value={formData.city} placeholder="Enter city" readOnly/><br/>
-							<label>State:</label><input type="text" name="state" value={formData.state} placeholder="Enter state" readOnly/><br/>
-						</form>
+							<label>Street:</label><input type="text" name="street" onChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.value })} placeholder="Enter street" required/><br />
+							<label>City:</label><input type="text" name="city" value={formData.city} placeholder="Enter city" readOnly/><br />
+							<label>State:</label><input type="text" name="state" value={formData.state} placeholder="Enter state" readOnly/><br />
 
-						{/* TODO: Display total price and the checkout button */}
-						<div className="cart-total">
-							{/* Display the total price */}
-							<h3>Total: ${totalPrice}</h3>
-							{/* Checkout button should be enabled only if there are items in the cart */}
-							{cart.length > 0 ? <button onClick={handleCheckout} disabled={cart.length === 0}>Proceed to Checkout</button>:""}
-						</div>
+							{/* TODO: Display total price and the checkout button */}
+							<div className="cart-total">
+								{/* Display the total price */}
+								<h3>Total: ${totalPrice}</h3>
+								{/* Checkout button should be enabled only if there are items in the cart */}
+								{cart.length > 0 ? <button type='submit' disabled={cart.length === 0}>Proceed to Checkout</button> : ""}
+							</div>
+						</form>
 					</>
 				)}
 			</div>

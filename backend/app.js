@@ -284,6 +284,8 @@ app.post("/place-order", isAuthenticated, async (req, res) => {
       await pool.query("INSERT INTO orders(user_id,order_date,total_amount) VALUES ($1,NOW(),$2)", [req.session.userId,result2.rows[0]['total_amount']]);
       const result3 = await pool.query("select coalesce(max(order_id),0) as order_id from orders where user_id = $1",[req.session.userId]);
       
+      await pool.query("insert into orderaddress values($1,$2,$3,$4,$5)",[result3.rows[0].order_id,req.body.street,req.body.city,req.body.state,req.body.pincode]);
+      
       for(const row of result4.rows){
         await pool.query("insert into orderitems values($1,$2,$3,$4)",[result3.rows[0]['order_id'],row['item_id'],row['quantity'],row['price']]);
         await pool.query("update products set stock_quantity = stock_quantity - $1 where product_id = $2",[row.quantity,row.product_id]);

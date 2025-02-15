@@ -89,11 +89,11 @@ const Signup = () => {
   // - A submit button
   return (
     <div>
-      <form>
+      <form onSubmit={handleSubmit}>
         <label>Username: <input type="text" id="username" name="username" required onChange={handleChange}/></label><br/>
         <label>Email: <input type="email" id="email" name="email" required onChange={handleChange}/> </label><br/>
         <label>Password <input type="password" id="password" name="password" required onChange={handleChange}/> </label><br/>
-        <button type="submit" onClick={handleSubmit}>Signup</button>
+        <button type="submit">Signup</button>
       </form>
     </div>
   );

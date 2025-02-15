@@ -123,7 +123,7 @@ const OrderConfirmation = () => {
 					</tbody>
 				</table>
 				<div className="button-container">
-					<button onClick={()=>(navigate("/dashboard"))}>Continue Shopping...</button>
+					<button onClick={()=>(navigate("/products"))}>Continue Shopping...</button>
 				</div>
 			</div>
 		</>
