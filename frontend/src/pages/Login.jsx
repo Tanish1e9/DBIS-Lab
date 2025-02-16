@@ -32,7 +32,7 @@ const Login = () => {
       
     };
     checkStatus();
-  }, [navigate]);
+  }, []);
 
   // Read about useState to manage form data
   const [formData, setFormData] = useState({
