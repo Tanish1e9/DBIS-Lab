@@ -152,7 +152,7 @@ const Products = () => {
     // Implement the search logic here
     // use Array.prototype.filter to filter the products
     // that match with the searchTerm
-    setfilteredProducts(products.filter(elem => elem.name === searchTerm || searchTerm === ""));
+    setfilteredProducts(products.filter(elem => elem.name.toLowerCase().includes(searchTerm) || searchTerm === ""));
   };
 
 
