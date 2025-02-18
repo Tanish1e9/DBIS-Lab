@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import Navbar from "../components/Navbar";
 import { apiUrl } from "../config/config";
 
-const Dashboard = (props) => {
+const Dashboard = () => {
   const navigate = useNavigate(); // Use this to redirect users
   const [username, setUsername] = useState("User");
 
